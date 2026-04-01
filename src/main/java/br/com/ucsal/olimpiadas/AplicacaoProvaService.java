@@ -44,9 +44,9 @@ public class AplicacaoProvaService {
 
             Resposta r = new Resposta();
             r.setQuestaoId(q.getId());
-            r.setAlternativaMarcada(resposta.charAt(0));
+            r.setResposta(resposta);
             r.setCorreta(q.isRespostaCorreta(resposta));
-
+            
             tentativa.getRespostas().add(r);
         }
 

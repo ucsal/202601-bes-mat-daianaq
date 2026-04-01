@@ -1,24 +1,31 @@
 package br.com.ucsal.olimpiadas;
 
 public class Resposta {
+    private long questaoId;
+    private String resposta;
+    private boolean correta;
 
-	private long questaoId;
-	private char alternativaMarcada;
-	private boolean correta;
+    public long getQuestaoId() {
+        return questaoId;
+    }
 
-	public void setQuestaoId(long questaoId) {
-		this.questaoId = questaoId;
-	}
+    public void setQuestaoId(long questaoId) {
+        this.questaoId = questaoId;
+    }
 
-	public void setAlternativaMarcada(char alternativaMarcada) {
-		this.alternativaMarcada = alternativaMarcada;
-	}
+    public String getResposta() {
+        return resposta;
+    }
 
-	public void setCorreta(boolean correta) {
-		this.correta = correta;
-	}
+    public void setResposta(String resposta) {
+        this.resposta = resposta;
+    }
 
-	public boolean isCorreta() {
-		return correta;
-	}
+    public boolean isCorreta() {
+        return correta;
+    }
+
+    public void setCorreta(boolean correta) {
+        this.correta = correta;
+    }
 }
