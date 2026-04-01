@@ -5,10 +5,10 @@ import java.util.Scanner;
 
 public class AplicacaoProvaService {
 
-    private List<Questao> questoes;
+    private List<QuestaoBase> questoes;
     private TabuleiroService tabuleiroService = new TabuleiroService();
 
-    public AplicacaoProvaService(List<Questao> questoes) {
+    public AplicacaoProvaService(List<QuestaoBase> questoes) {
         this.questoes = questoes;
     }
 
@@ -29,7 +29,7 @@ public class AplicacaoProvaService {
 
         System.out.println("\n--- Início da Prova ---");
 
-        for (Questao q : questoesDaProva) {
+        for (QuestaoBase q : questoesDaProva) {
 
             System.out.println("\nQuestão #" + q.getId());
             System.out.println(q.getEnunciado());
@@ -37,24 +37,15 @@ public class AplicacaoProvaService {
             System.out.println("Posição inicial:");
             tabuleiroService.imprimirTabuleiroFen(q.getFenInicial());
 
-            for (String alt : q.getAlternativas()) {
-                System.out.println(alt);
-            }
+            q.exibir();
 
-            System.out.print("Sua resposta (A–E): ");
-            char marcada;
-
-            try {
-                marcada = Questao.normalizar(in.nextLine().trim().charAt(0));
-            } catch (Exception e) {
-                System.out.println("resposta inválida (marcando como errada)");
-                marcada = 'X';
-            }
+            System.out.print("Sua resposta: ");
+            String resposta = in.nextLine();
 
             Resposta r = new Resposta();
             r.setQuestaoId(q.getId());
-            r.setAlternativaMarcada(marcada);
-            r.setCorreta(q.isRespostaCorreta(marcada));
+            r.setAlternativaMarcada(resposta.charAt(0));
+            r.setCorreta(q.isRespostaCorreta(resposta));
 
             tentativa.getRespostas().add(r);
         }

@@ -8,7 +8,7 @@ public class App {
 
     static final List<Participante> participantes = new ArrayList<>();
     static final List<Prova> provas = new ArrayList<>();
-    static final List<Questao> questoes = new ArrayList<>();
+    static final List<QuestaoBase> questoes = new ArrayList<>();
     static final List<Tentativa> tentativas = new ArrayList<>();
 
     static final Scanner in = new Scanner(System.in);
@@ -64,7 +64,6 @@ public class App {
             }
 
             case "3" -> {
-
                 if (provas.isEmpty()) {
                     System.out.println("não há provas cadastradas");
                     break;
@@ -77,24 +76,58 @@ public class App {
                 System.out.println("Enunciado:");
                 String enunciado = in.nextLine();
 
-                String[] alternativas = new String[5];
-                for (int i = 0; i < 5; i++) {
-                    char letra = (char) ('A' + i);
-                    System.out.print("Alternativa " + letra + ": ");
-                    alternativas[i] = letra + ") " + in.nextLine();
+                System.out.println("Tipo da questão:");
+                System.out.println("1) Múltipla escolha");
+                System.out.println("2) Verdadeiro ou Falso");
+                System.out.print("> ");
+
+                String tipo = in.nextLine();
+
+                if (tipo.equals("1")) {
+
+                    String[] alternativas = new String[5];
+
+                    for (int i = 0; i < 5; i++) {
+                        char letra = (char) ('A' + i);
+                        System.out.print("Alternativa " + letra + ": ");
+                        alternativas[i] = letra + ") " + in.nextLine();
+                    }
+
+                    System.out.print("Alternativa correta (A–E): ");
+
+                    char correta;
+                    try {
+                        correta = QuestaoBase.normalizar(in.nextLine().trim().charAt(0));
+                    } catch (Exception e) {
+                        System.out.println("alternativa inválida");
+                        break;
+                    }
+
+                    questaoService.cadastrarMultiplaEscolha(provaId, enunciado, alternativas, correta);
                 }
 
-                System.out.print("Alternativa correta (A–E): ");
-                char correta;
+                else if (tipo.equals("2")) {
 
-                try {
-                    correta = Questao.normalizar(in.nextLine().trim().charAt(0));
-                } catch (Exception e) {
-                    System.out.println("alternativa inválida");
-                    break;
+                    System.out.print("Resposta correta (V/F): ");
+                    String resp = in.nextLine();
+
+                    boolean correta;
+
+                    if (resp.equalsIgnoreCase("V")) {
+                        correta = true;
+                    } else if (resp.equalsIgnoreCase("F")) {
+                        correta = false;
+                    } else {
+                        System.out.println("resposta inválida");
+                        break;
+                    }
+
+                    questaoService.cadastrarVerdadeiroFalso(provaId, enunciado, correta);
                 }
 
-                questaoService.cadastrar(provaId, enunciado, alternativas, correta);
+                else {
+                    System.out.println("tipo inválido");
+                }
             }
 
             case "4" -> {

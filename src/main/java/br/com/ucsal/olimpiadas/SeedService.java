@@ -4,14 +4,16 @@ import java.util.List;
 
 public class SeedService {
 
-    public void carregar(List<Prova> provas, List<Questao> questoes) {
+	public void carregar(List<Prova> provas, List<QuestaoBase> questoes) {
 
         Prova prova = new Prova();
         prova.setId(IdGenerator.proximaProvaId++);
         prova.setTitulo("Olimpíada 2026 • Nível 1 • Prova A");
+
         provas.add(prova);
 
-        Questao q1 = new Questao();
+        QuestaoMultiplaEscolha q1 = new QuestaoMultiplaEscolha();
+
         q1.setId(IdGenerator.proximaQuestaoId++);
         q1.setProvaId(prova.getId());
 
@@ -34,5 +36,6 @@ public class SeedService {
         q1.setAlternativaCorreta('C');
 
         questoes.add(q1);
+
     }
 }

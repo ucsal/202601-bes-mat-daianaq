@@ -1,16 +1,10 @@
 package br.com.ucsal.olimpiadas;
 
-import java.util.Arrays;
-
-public class Questao {
+public abstract class QuestaoBase {
 
     private long id;
     private long provaId;
     private String enunciado;
-    private String[] alternativas = new String[5];
-    private char alternativaCorreta;
-
-    // 🔥 FALTAVA ISSO
     private String fenInicial;
 
     public long getId() {
@@ -37,26 +31,6 @@ public class Questao {
         this.enunciado = enunciado;
     }
 
-    public String[] getAlternativas() {
-        return alternativas;
-    }
-
-    public void setAlternativas(String[] alternativas) {
-        if (alternativas == null || alternativas.length != 5) {
-            throw new IllegalArgumentException("Precisa de 5 alternativas");
-        }
-        this.alternativas = Arrays.copyOf(alternativas, 5);
-    }
-
-    public void setAlternativaCorreta(char alternativaCorreta) {
-        this.alternativaCorreta = normalizar(alternativaCorreta);
-    }
-
-    public boolean isRespostaCorreta(char marcada) {
-        return normalizar(marcada) == alternativaCorreta;
-    }
-
-    // 🔥 GET/SET DO FEN
     public String getFenInicial() {
         return fenInicial;
     }
@@ -64,11 +38,16 @@ public class Questao {
     public void setFenInicial(String fenInicial) {
         this.fenInicial = fenInicial;
     }
-
+    
     public static char normalizar(char c) {
         char up = Character.toUpperCase(c);
-        if (up < 'A' || up > 'E')
+        if (up < 'A' || up > 'E') {
             throw new IllegalArgumentException();
+        }
         return up;
     }
+
+    public abstract boolean isRespostaCorreta(String resposta);
+
+    public abstract void exibir();
 }
