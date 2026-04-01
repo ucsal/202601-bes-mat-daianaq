@@ -4,59 +4,71 @@ import java.util.Arrays;
 
 public class Questao {
 
-	private long id;
-	private long provaId;
-	private String enunciado;
-	private String[] alternativas = new String[5];
-	private char alternativaCorreta;
+    private long id;
+    private long provaId;
+    private String enunciado;
+    private String[] alternativas = new String[5];
+    private char alternativaCorreta;
 
-	public long getId() {
-		return id;
-	}
+    // 🔥 FALTAVA ISSO
+    private String fenInicial;
 
-	public void setId(long id) {
-		this.id = id;
-	}
+    public long getId() {
+        return id;
+    }
 
-	public long getProvaId() {
-		return provaId;
-	}
+    public void setId(long id) {
+        this.id = id;
+    }
 
-	public void setProvaId(long provaId) {
-		this.provaId = provaId;
-	}
+    public long getProvaId() {
+        return provaId;
+    }
 
-	public String getEnunciado() {
-		return enunciado;
-	}
+    public void setProvaId(long provaId) {
+        this.provaId = provaId;
+    }
 
-	public void setEnunciado(String enunciado) {
-		this.enunciado = enunciado;
-	}
+    public String getEnunciado() {
+        return enunciado;
+    }
 
-	public String[] getAlternativas() {
-		return alternativas;
-	}
+    public void setEnunciado(String enunciado) {
+        this.enunciado = enunciado;
+    }
 
-	public void setAlternativas(String[] alternativas) {
-		if (alternativas == null || alternativas.length != 5) {
-			throw new IllegalArgumentException("Precisa de 5 alternativas");
-		}
-		this.alternativas = Arrays.copyOf(alternativas, 5);
-	}
+    public String[] getAlternativas() {
+        return alternativas;
+    }
 
-	public void setAlternativaCorreta(char alternativaCorreta) {
-		this.alternativaCorreta = normalizar(alternativaCorreta);
-	}
+    public void setAlternativas(String[] alternativas) {
+        if (alternativas == null || alternativas.length != 5) {
+            throw new IllegalArgumentException("Precisa de 5 alternativas");
+        }
+        this.alternativas = Arrays.copyOf(alternativas, 5);
+    }
 
-	public boolean isRespostaCorreta(char marcada) {
-		return normalizar(marcada) == alternativaCorreta;
-	}
+    public void setAlternativaCorreta(char alternativaCorreta) {
+        this.alternativaCorreta = normalizar(alternativaCorreta);
+    }
 
-	public static char normalizar(char c) {
-		char up = Character.toUpperCase(c);
-		if (up < 'A' || up > 'E')
-			throw new IllegalArgumentException();
-		return up;
-	}
+    public boolean isRespostaCorreta(char marcada) {
+        return normalizar(marcada) == alternativaCorreta;
+    }
+
+    // 🔥 GET/SET DO FEN
+    public String getFenInicial() {
+        return fenInicial;
+    }
+
+    public void setFenInicial(String fenInicial) {
+        this.fenInicial = fenInicial;
+    }
+
+    public static char normalizar(char c) {
+        char up = Character.toUpperCase(c);
+        if (up < 'A' || up > 'E')
+            throw new IllegalArgumentException();
+        return up;
+    }
 }

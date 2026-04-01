@@ -4,27 +4,29 @@ import java.util.List;
 
 public class ParticipanteService {
 
-	private List<Participante> participantes;
-	private long proximoId = 1;
+    private List<Participante> participantes;
 
-	public ParticipanteService(List<Participante> participantes) {
-		this.participantes = participantes;
-	}
+    public ParticipanteService(List<Participante> participantes) {
+        this.participantes = participantes;
+    }
 
-	public void cadastrar(String nome, String email) {
-		if (nome == null || nome.isBlank()) {
-			throw new IllegalArgumentException("Nome inválido");
-		}
+    public void cadastrar(String nome, String email) {
+        if (nome == null || nome.isBlank()) {
+            System.out.println("nome inválido");
+            return;
+        }
 
-		Participante p = new Participante();
-		p.setId(proximoId++);
-		p.setNome(nome);
-		p.setEmail(email);
+        Participante p = new Participante();
+        p.setId(IdGenerator.proximoParticipanteId++);
+        p.setNome(nome);
+        p.setEmail(email);
 
-		participantes.add(p);
-	}
+        participantes.add(p);
 
-	public List<Participante> listar() {
-		return participantes;
-	}
+        System.out.println("Participante cadastrado: " + p.getId());
+    }
+
+    public List<Participante> listar() {
+        return participantes;
+    }
 }
