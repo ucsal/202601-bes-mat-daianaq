@@ -7,6 +7,8 @@ Para melhorar a organização, essas responsabilidades foram separadas em classe
 
 -O sistema foi modificado para permitir a adição de novos tipos de questões sem alterar o código existente.
 
+-A captura e validação das respostas foram generalizadas para aceitar diferentes formatos.
+
 ## 📌 Princípio aplicado: SRP (Single Responsibility Principle)
 
 Cada classe passou a ter uma única responsabilidade:
@@ -36,3 +38,13 @@ O sistema foi preparado para permitir extensão sem modificação do código exi
 •Uso de polimorfismo com os métodos `exibir()` e `isRespostaCorreta()`;
 
 •Adição da escolha do tipo de questão no momento do cadastro.
+
+## 📌 Princípio aplicado: LSP (Liskov Substitution Principle)
+
+O sistema foi ajustado para garantir que qualquer tipo de questão possa ser usado no lugar da classe base sem alterar o comportamento:
+
+•A classe Resposta foi modificada para armazenar a resposta como String (antes era char);
+
+•O método isRespostaCorreta() passou a receber String, permitindo que cada tipo de questão faça sua própria validação;
+
+•A aplicação da prova agora trata todas as questões de forma polimórfica, sem verificar o tipo específico.
