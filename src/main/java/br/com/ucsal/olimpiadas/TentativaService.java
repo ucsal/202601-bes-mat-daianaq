@@ -2,25 +2,26 @@ package br.com.ucsal.olimpiadas;
 
 import java.util.List;
 
-public class TentativaService {
-
+public class TentativaService implements Registravel, Calculavel, Listavel {
+    
+    @Override
     public void registrar(Tentativa tentativa) {
         tentativa.setId(IdGenerator.proximaTentativaId++);
     }
-
+    
+    @Override
     public int calcularNota(Tentativa tentativa) {
         int acertos = 0;
-
         for (Resposta r : tentativa.getRespostas()) {
             if (r.isCorreta())
                 acertos++;
         }
-
         return acertos;
     }
-
+    
+    @Override
     public void listar(List<Tentativa> tentativas) {
-    	System.out.println("\n--- Tentativas ---");
+        System.out.println("\n--- Tentativas ---");
         for (Tentativa t : tentativas) {
             System.out.println("Tentativa #" + t.getId() + " | Nota: " + calcularNota(t));
         }
