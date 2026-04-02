@@ -9,6 +9,8 @@ Para melhorar a organização, essas responsabilidades foram separadas em classe
 
 -A captura e validação das respostas foram generalizadas para aceitar diferentes formatos.
 
+-Foram criadas interfaces segregadas (Registravel, Calculavel e Listavel) para separar as responsabilidades do serviço de tentativas.
+
 ## 📌 Princípio aplicado: SRP (Single Responsibility Principle)
 
 Cada classe passou a ter uma única responsabilidade:
@@ -48,3 +50,19 @@ O sistema foi ajustado para garantir que qualquer tipo de questão possa ser usa
 •O método isRespostaCorreta() passou a receber String, permitindo que cada tipo de questão faça sua própria validação;
 
 •A aplicação da prova agora trata todas as questões de forma polimórfica, sem verificar o tipo específico.
+
+## 📌 Princípio aplicado: ISP (Interface Segregation Principle)
+
+Foram criadas interfaces específicas para segregar as responsabilidades do serviço de tentativas:
+
+•Registravel → responsável apenas por registrar uma tentativa;
+
+•Calculavel → responsável apenas por calcular a nota;
+
+•Listavel → responsável apenas por listar as tentativas;
+
+•A classe TentativaService passou a implementar apenas as interfaces necessárias;
+
+•Separação clara entre registro, cálculo e visualização;
+
+•Isso permite maior flexibilidade e facilita a evolução do sistema sem impactar outras partes.
