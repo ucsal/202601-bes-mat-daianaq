@@ -1,316 +1,256 @@
 package br.com.ucsal.olimpiadas;
 
+import br.com.ucsal.olimpiadas.repository.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class App {
 
-	static long proximoParticipanteId = 1;
-	static long proximaProvaId = 1;
-	static long proximaQuestaoId = 1;
-	static long proximaTentativaId = 1;
+    static final Scanner in = new Scanner(System.in);
 
-	static final List<Participante> participantes = new ArrayList<>();
-	static final List<Prova> provas = new ArrayList<>();
-	static final List<Questao> questoes = new ArrayList<>();
-	static final List<Tentativa> tentativas = new ArrayList<>();
+    public static void main(String[] args) {
 
-	private static final Scanner in = new Scanner(System.in);
+        List<Participante> participantes = new ArrayList<>();
+        List<Prova> provas = new ArrayList<>();
+        List<QuestaoBase> questoes = new ArrayList<>();
+        List<Tentativa> tentativas = new ArrayList<>();
 
-	public static void main(String[] args) {
-		seed();
+        ParticipanteRepository participanteRepository = new ParticipanteRepository() {
+            @Override
+            public void save(Participante p) { participantes.add(p); }
+            @Override
+            public List<Participante> findAll() { return participantes; }
+            @Override
+            public boolean existsById(Long id) { 
+                return participantes.stream().anyMatch(p -> p.getId() == id); 
+            }
+        };
 
-		while (true) {
-			System.out.println("\n=== OLIMPÍADA DE QUESTÕES (V1) ===");
-			System.out.println("1) Cadastrar participante");
-			System.out.println("2) Cadastrar prova");
-			System.out.println("3) Cadastrar questão (A–E) em uma prova");
-			System.out.println("4) Aplicar prova (selecionar participante + prova)");
-			System.out.println("5) Listar tentativas (resumo)");
-			System.out.println("0) Sair");
-			System.out.print("> ");
+        ProvaRepository provaRepository = new ProvaRepository() {
+            @Override
+            public void save(Prova p) { provas.add(p); }
+            @Override
+            public List<Prova> findAll() { return provas; }
+            @Override
+            public boolean existsById(Long id) { 
+                return provas.stream().anyMatch(p -> p.getId() == id); 
+            }
+        };
 
-			switch (in.nextLine()) {
-			case "1" -> cadastrarParticipante();
-			case "2" -> cadastrarProva();
-			case "3" -> cadastrarQuestao();
-			case "4" -> aplicarProva();
-			case "5" -> listarTentativas();
-			case "0" -> {
-				System.out.println("tchau");
-				return;
-			}
-			default -> System.out.println("opção inválida");
-			}
-		}
-	}
+        QuestaoRepository questaoRepository = new QuestaoRepository() {
+            @Override
+            public void save(QuestaoBase q) { questoes.add(q); }
+            @Override
+            public List<QuestaoBase> findAll() { return questoes; }
+            @Override
+            public List<QuestaoBase> findByProvaId(Long provaId) {
+                return questoes.stream().filter(q -> q.getProvaId() == provaId).toList();
+            }
+        };
 
-	static void cadastrarParticipante() {
-		System.out.print("Nome: ");
-		var nome = in.nextLine();
+        TentativaRepository tentativaRepository = new TentativaRepository() {
+            @Override
+            public void save(Tentativa t) { tentativas.add(t); }
+            @Override
+            public List<Tentativa> findAll() { return tentativas; }
+        };
 
-		System.out.print("Email (opcional): ");
-		var email = in.nextLine();
+        var participanteService = new ParticipanteService(participanteRepository);
+        var provaService = new ProvaService(provaRepository);
+        var questaoService = new QuestaoService(questaoRepository);
+        var tentativaService = new TentativaService(tentativaRepository);
+        var aplicacaoProvaService = new AplicacaoProvaService(questaoRepository);
 
-		if (nome == null || nome.isBlank()) {
-			System.out.println("nome inválido");
-			return;
-		}
+        Registravel registrador = tentativaService;
+        Calculavel calculador = tentativaService;
+        Listavel listador = tentativaService;
 
-		var p = new Participante();
-		p.setId(proximoParticipanteId++);
-		p.setNome(nome);
-		p.setEmail(email);
+        new SeedService().carregar(provaRepository, questaoRepository);
 
-		participantes.add(p);
-		System.out.println("Participante cadastrado: " + p.getId());
-	}
+        while (true) {
 
-	static void cadastrarProva() {
-		System.out.print("Título da prova: ");
-		var titulo = in.nextLine();
+            System.out.println("\n=== OLIMPÍADA DE QUESTÕES (V1) ===");
+            System.out.println("1) Cadastrar participante");
+            System.out.println("2) Cadastrar prova");
+            System.out.println("3) Cadastrar questão (A–E) em uma prova");
+            System.out.println("4) Aplicar prova (selecionar participante + prova)");
+            System.out.println("5) Listar tentativas (resumo)");
+            System.out.println("0) Sair");
+            System.out.print("> ");
 
-		if (titulo == null || titulo.isBlank()) {
-			System.out.println("título inválido");
-			return;
-		}
+            switch (in.nextLine()) {
 
-		var prova = new Prova();
-		prova.setId(proximaProvaId++);
-		prova.setTitulo(titulo);
+            case "1" -> {
+                System.out.print("Nome: ");
+                String nome = in.nextLine();
 
-		provas.add(prova);
-		System.out.println("Prova criada: " + prova.getId());
-	}
+                System.out.print("Email (opcional): ");
+                String email = in.nextLine();
 
-	static void cadastrarQuestao() {
-		if (provas.isEmpty()) {
-			System.out.println("não há provas cadastradas");
-			return;
-		}
+                participanteService.cadastrar(nome, email);
+            }
 
-		var provaId = escolherProva();
-		if (provaId == null)
-			return;
+            case "2" -> {
+                System.out.print("Título da prova: ");
+                String titulo = in.nextLine();
 
-		System.out.println("Enunciado:");
-		var enunciado = in.nextLine();
+                provaService.cadastrarProva(titulo);
+            }
 
-		var alternativas = new String[5];
-		for (int i = 0; i < 5; i++) {
-			char letra = (char) ('A' + i);
-			System.out.print("Alternativa " + letra + ": ");
-			alternativas[i] = letra + ") " + in.nextLine();
-		}
+            case "3" -> {
+                if (provaService.listar().isEmpty()) {
+                    System.out.println("não há provas cadastradas");
+                    break;
+                }
 
-		System.out.print("Alternativa correta (A–E): ");
-		char correta;
-		try {
-			correta = Questao.normalizar(in.nextLine().trim().charAt(0));
-		} catch (Exception e) {
-			System.out.println("alternativa inválida");
-			return;
-		}
+                Long provaId = escolherProva(provaService);
+                if (provaId == null)
+                    break;
 
-		var q = new Questao();
-		q.setId(proximaQuestaoId++);
-		q.setProvaId(provaId);
-		q.setEnunciado(enunciado);
-		q.setAlternativas(alternativas);
-		q.setAlternativaCorreta(correta);
+                System.out.println("Enunciado:");
+                String enunciado = in.nextLine();
 
-		questoes.add(q);
+                System.out.println("Tipo da questão:");
+                System.out.println("1) Múltipla escolha");
+                System.out.println("2) Verdadeiro ou Falso");
+                System.out.print("> ");
 
-		System.out.println("Questão cadastrada: " + q.getId() + " (na prova " + provaId + ")");
-	}
+                String tipo = in.nextLine();
 
+                if (tipo.equals("1")) {
 
-	static void aplicarProva() {
-		if (participantes.isEmpty()) {
-			System.out.println("cadastre participantes primeiro");
-			return;
-		}
-		if (provas.isEmpty()) {
-			System.out.println("cadastre provas primeiro");
-			return;
-		}
+                    String[] alternativas = new String[5];
 
-		var participanteId = escolherParticipante();
-		if (participanteId == null)
-			return;
+                    for (int i = 0; i < 5; i++) {
+                        char letra = (char) ('A' + i);
+                        System.out.print("Alternativa " + letra + ": ");
+                        alternativas[i] = letra + ") " + in.nextLine();
+                    }
 
-		var provaId = escolherProva();
-		if (provaId == null)
-			return;
+                    System.out.print("Alternativa correta (A–E): ");
 
-		var questoesDaProva = questoes.stream().filter(q -> q.getProvaId() == provaId).toList();
+                    char correta;
+                    try {
+                        correta = QuestaoBase.normalizar(in.nextLine().trim().charAt(0));
+                    } catch (Exception e) {
+                        System.out.println("alternativa inválida");
+                        break;
+                    }
 
-		if (questoesDaProva.isEmpty()) {
-			System.out.println("esta prova não possui questões cadastradas");
-			return;
-		}
+                    questaoService.cadastrarMultiplaEscolha(provaId, enunciado, alternativas, correta);
+                }
 
-		var tentativa = new Tentativa();
-		tentativa.setId(proximaTentativaId++);
-		tentativa.setParticipanteId(participanteId);
-		tentativa.setProvaId(provaId);
+                else if (tipo.equals("2")) {
 
-		System.out.println("\n--- Início da Prova ---");
+                    System.out.print("Resposta correta (V/F): ");
+                    String resp = in.nextLine();
 
-		for (var q : questoesDaProva) {
-			System.out.println("\nQuestão #" + q.getId());
-			System.out.println(q.getEnunciado());
+                    boolean correta;
 
-			System.out.println("Posição inicial:");
-			imprimirTabuleiroFen(q.getFenInicial());
+                    if (resp.equalsIgnoreCase("V")) {
+                        correta = true;
+                    } else if (resp.equalsIgnoreCase("F")) {
+                        correta = false;
+                    } else {
+                        System.out.println("resposta inválida");
+                        break;
+                    }
 
-			for (var alt : q.getAlternativas()) {
-			    System.out.println(alt);
-			}
+                    questaoService.cadastrarVerdadeiroFalso(provaId, enunciado, correta);
+                }
 
-			System.out.print("Sua resposta (A–E): ");
-			char marcada;
-			try {
-				marcada = Questao.normalizar(in.nextLine().trim().charAt(0));
-			} catch (Exception e) {
-				System.out.println("resposta inválida (marcando como errada)");
-				marcada = 'X';
-			}
+                else {
+                    System.out.println("tipo inválido");
+                }
+            }
 
-			var r = new Resposta();
-			r.setQuestaoId(q.getId());
-			r.setAlternativaMarcada(marcada);
-			r.setCorreta(q.isRespostaCorreta(marcada));
+            case "4" -> {
 
-			tentativa.getRespostas().add(r);
-		}
+                if (participanteService.listar().isEmpty()) {
+                    System.out.println("cadastre participantes primeiro");
+                    break;
+                }
 
-		tentativas.add(tentativa);
+                if (provaService.listar().isEmpty()) {
+                    System.out.println("cadastre provas primeiro");
+                    break;
+                }
 
-		int nota = calcularNota(tentativa);
-		System.out.println("\n--- Fim da Prova ---");
-		System.out.println("Nota (acertos): " + nota + " / " + tentativa.getRespostas().size());
-	}
+                Long participanteId = escolherParticipante(participanteService);
+                if (participanteId == null)
+                    break;
 
-	public static int calcularNota(Tentativa tentativa) {
-		int acertos = 0;
-		for (var r : tentativa.getRespostas()) {
-			if (r.isCorreta())
-				acertos++;
-		}
-		return acertos;
-	}
+                Long provaId = escolherProva(provaService);
+                if (provaId == null)
+                    break;
 
-	static void listarTentativas() {
-		System.out.println("\n--- Tentativas ---");
-		for (var t : tentativas) {
-			System.out.printf("#%d | participante=%d | prova=%d | nota=%d/%d%n", t.getId(), t.getParticipanteId(),
-					t.getProvaId(), calcularNota(t), t.getRespostas().size());
-		}
-	}
+                var tentativa = aplicacaoProvaService.aplicar(participanteId, provaId, in);
 
+                if (tentativa != null) {
+                    registrador.registrar(tentativa);
+                    int nota = calculador.calcularNota(tentativa);
 
-	static Long escolherParticipante() {
-		System.out.println("\nParticipantes:");
-		for (var p : participantes) {
-			System.out.printf("  %d) %s%n", p.getId(), p.getNome());
-		}
-		System.out.print("Escolha o id do participante: ");
+                    System.out.println("\n--- Fim da Prova ---");
+                    System.out.println("Nota (acertos): " + nota + " / " + tentativa.getRespostas().size());
+                }
+            }
 
-		try {
-			long id = Long.parseLong(in.nextLine());
-			boolean existe = participantes.stream().anyMatch(p -> p.getId() == id);
-			if (!existe) {
-				System.out.println("id inválido");
-				return null;
-			}
-			return id;
-		} catch (Exception e) {
-			System.out.println("entrada inválida");
-			return null;
-		}
-	}
+            case "5" -> listador.listar(tentativaRepository.findAll());
 
-	static Long escolherProva() {
-		System.out.println("\nProvas:");
-		for (var p : provas) {
-			System.out.printf("  %d) %s%n", p.getId(), p.getTitulo());
-		}
-		System.out.print("Escolha o id da prova: ");
+            case "0" -> {
+                System.out.println("tchau");
+                return;
+            }
 
-		try {
-			long id = Long.parseLong(in.nextLine());
-			boolean existe = provas.stream().anyMatch(p -> p.getId() == id);
-			if (!existe) {
-				System.out.println("id inválido");
-				return null;
-			}
-			return id;
-		} catch (Exception e) {
-			System.out.println("entrada inválida");
-			return null;
-		}
-	}
+            default -> System.out.println("opção inválida");
+            }
+        }
+    }
 
-	static void imprimirTabuleiroFen(String fen) {
+    static Long escolherParticipante(ParticipanteService service) {
+        System.out.println("\nParticipantes:");
+        for (var p : service.listar()) {
+            System.out.printf("  %d) %s%n", p.getId(), p.getNome());
+        }
 
-		String parteTabuleiro = fen.split(" ")[0];
-		String[] ranks = parteTabuleiro.split("/");
+        System.out.print("Escolha o id do participante: ");
 
-		System.out.println();
-		System.out.println("    a b c d e f g h");
-		System.out.println("   -----------------");
+        try {
+            long id = Long.parseLong(in.nextLine());
 
-		for (int r = 0; r < 8; r++) {
+            if (!service.existePorId(id)) {
+                System.out.println("id inválido");
+                return null;
+            }
 
-			String rank = ranks[r];
-			System.out.print((8 - r) + " | ");
+            return id;
+        } catch (Exception e) {
+            System.out.println("entrada inválida");
+            return null;
+        }
+    }
 
-			for (char c : rank.toCharArray()) {
+    static Long escolherProva(ProvaService service) {
+        System.out.println("\nProvas:");
+        for (var p : service.listar()) {
+            System.out.printf("  %d) %s%n", p.getId(), p.getTitulo());
+        }
 
-				if (Character.isDigit(c)) {
-					int vazios = c - '0';
-					for (int i = 0; i < vazios; i++) {
-						System.out.print(". ");
-					}
-				} else {
-					System.out.print(c + " ");
-				}
-			}
+        System.out.print("Escolha o id da prova: ");
 
-			System.out.println("| " + (8 - r));
-		}
+        try {
+            long id = Long.parseLong(in.nextLine());
 
-		System.out.println("   -----------------");
-		System.out.println("    a b c d e f g h");
-		System.out.println();
-	}
+            if (!service.existePorId(id)) {
+                System.out.println("id inválido");
+                return null;
+            }
 
-
-	static void seed() {
-
-		var prova = new Prova();
-		prova.setId(proximaProvaId++);
-		prova.setTitulo("Olimpíada 2026 • Nível 1 • Prova A");
-		provas.add(prova);
-
-		var q1 = new Questao();
-		q1.setId(proximaQuestaoId++);
-		q1.setProvaId(prova.getId());
-
-		q1.setEnunciado("""
-				Questão 1 — Mate em 1.
-				É a vez das brancas.
-				Encontre o lance que dá mate imediatamente.
-				""");
-
-		q1.setFenInicial("6k1/5ppp/8/8/8/7Q/6PP/6K1 w - - 0 1");
-
-		q1.setAlternativas(new String[] { "A) Qh7#", "B) Qf5#", "C) Qc8#", "D) Qh8#", "E) Qe6#" });
-
-		q1.setAlternativaCorreta('C');
-
-		questoes.add(q1);
-	}
+            return id;
+        } catch (Exception e) {
+            System.out.println("entrada inválida");
+            return null;
+        }
+    }
 }

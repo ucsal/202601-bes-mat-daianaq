@@ -20,5 +20,4 @@ public class Prova {
 	public void setTitulo(String titulo) {
 		this.titulo = titulo;
 	}
-
 }
