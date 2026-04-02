@@ -1,27 +1,72 @@
 package br.com.ucsal.olimpiadas;
 
+import br.com.ucsal.olimpiadas.repository.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class App {
 
-    static final List<Participante> participantes = new ArrayList<>();
-    static final List<Prova> provas = new ArrayList<>();
-    static final List<QuestaoBase> questoes = new ArrayList<>();
-    static final List<Tentativa> tentativas = new ArrayList<>();
-
     static final Scanner in = new Scanner(System.in);
 
     public static void main(String[] args) {
 
-        var participanteService = new ParticipanteService(participantes);
-        var provaService = new ProvaService(provas);
-        var questaoService = new QuestaoService(questoes);
-        var tentativaService = new TentativaService();
-        var aplicacaoProvaService = new AplicacaoProvaService(questoes);
+        List<Participante> participantes = new ArrayList<>();
+        List<Prova> provas = new ArrayList<>();
+        List<QuestaoBase> questoes = new ArrayList<>();
+        List<Tentativa> tentativas = new ArrayList<>();
 
-        new SeedService().carregar(provas, questoes);
+        ParticipanteRepository participanteRepository = new ParticipanteRepository() {
+            @Override
+            public void save(Participante p) { participantes.add(p); }
+            @Override
+            public List<Participante> findAll() { return participantes; }
+            @Override
+            public boolean existsById(Long id) { 
+                return participantes.stream().anyMatch(p -> p.getId() == id); 
+            }
+        };
+
+        ProvaRepository provaRepository = new ProvaRepository() {
+            @Override
+            public void save(Prova p) { provas.add(p); }
+            @Override
+            public List<Prova> findAll() { return provas; }
+            @Override
+            public boolean existsById(Long id) { 
+                return provas.stream().anyMatch(p -> p.getId() == id); 
+            }
+        };
+
+        QuestaoRepository questaoRepository = new QuestaoRepository() {
+            @Override
+            public void save(QuestaoBase q) { questoes.add(q); }
+            @Override
+            public List<QuestaoBase> findAll() { return questoes; }
+            @Override
+            public List<QuestaoBase> findByProvaId(Long provaId) {
+                return questoes.stream().filter(q -> q.getProvaId() == provaId).toList();
+            }
+        };
+
+        TentativaRepository tentativaRepository = new TentativaRepository() {
+            @Override
+            public void save(Tentativa t) { tentativas.add(t); }
+            @Override
+            public List<Tentativa> findAll() { return tentativas; }
+        };
+
+        var participanteService = new ParticipanteService(participanteRepository);
+        var provaService = new ProvaService(provaRepository);
+        var questaoService = new QuestaoService(questaoRepository);
+        var tentativaService = new TentativaService(tentativaRepository);
+        var aplicacaoProvaService = new AplicacaoProvaService(questaoRepository);
+
+        Registravel registrador = tentativaService;
+        Calculavel calculador = tentativaService;
+        Listavel listador = tentativaService;
+
+        new SeedService().carregar(provaRepository, questaoRepository);
 
         while (true) {
 
@@ -43,11 +88,6 @@ public class App {
                 System.out.print("Email (opcional): ");
                 String email = in.nextLine();
 
-                if (nome == null || nome.isBlank()) {
-                    System.out.println("nome inválido");
-                    break;
-                }
-
                 participanteService.cadastrar(nome, email);
             }
 
@@ -55,16 +95,11 @@ public class App {
                 System.out.print("Título da prova: ");
                 String titulo = in.nextLine();
 
-                if (titulo == null || titulo.isBlank()) {
-                    System.out.println("título inválido");
-                    break;
-                }
-
                 provaService.cadastrarProva(titulo);
             }
 
             case "3" -> {
-                if (provas.isEmpty()) {
+                if (provaService.listar().isEmpty()) {
                     System.out.println("não há provas cadastradas");
                     break;
                 }
@@ -132,12 +167,12 @@ public class App {
 
             case "4" -> {
 
-                if (participantes.isEmpty()) {
+                if (participanteService.listar().isEmpty()) {
                     System.out.println("cadastre participantes primeiro");
                     break;
                 }
 
-                if (provas.isEmpty()) {
+                if (provaService.listar().isEmpty()) {
                     System.out.println("cadastre provas primeiro");
                     break;
                 }
@@ -153,17 +188,15 @@ public class App {
                 var tentativa = aplicacaoProvaService.aplicar(participanteId, provaId, in);
 
                 if (tentativa != null) {
-                    tentativaService.registrar(tentativa);
-                    tentativas.add(tentativa);
-
-                    int nota = tentativaService.calcularNota(tentativa);
+                    registrador.registrar(tentativa);
+                    int nota = calculador.calcularNota(tentativa);
 
                     System.out.println("\n--- Fim da Prova ---");
                     System.out.println("Nota (acertos): " + nota + " / " + tentativa.getRespostas().size());
                 }
             }
 
-            case "5" -> tentativaService.listar(tentativas);
+            case "5" -> listador.listar(tentativaRepository.findAll());
 
             case "0" -> {
                 System.out.println("tchau");
@@ -186,10 +219,7 @@ public class App {
         try {
             long id = Long.parseLong(in.nextLine());
 
-            boolean existe = service.listar().stream()
-                    .anyMatch(p -> p.getId() == id);
-
-            if (!existe) {
+            if (!service.existePorId(id)) {
                 System.out.println("id inválido");
                 return null;
             }
@@ -212,10 +242,7 @@ public class App {
         try {
             long id = Long.parseLong(in.nextLine());
 
-            boolean existe = service.listar().stream()
-                    .anyMatch(p -> p.getId() == id);
-
-            if (!existe) {
+            if (!service.existePorId(id)) {
                 System.out.println("id inválido");
                 return null;
             }

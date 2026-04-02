@@ -1,13 +1,13 @@
 package br.com.ucsal.olimpiadas;
 
+import br.com.ucsal.olimpiadas.repository.ProvaRepository;
 import java.util.List;
 
 public class ProvaService {
+    private final ProvaRepository repository;
 
-    private List<Prova> provas;
-
-    public ProvaService(List<Prova> provas) {
-        this.provas = provas;
+    public ProvaService(ProvaRepository repository) {
+        this.repository = repository;
     }
 
     public void cadastrarProva(String titulo) {
@@ -20,12 +20,15 @@ public class ProvaService {
         p.setId(IdGenerator.proximaProvaId++);
         p.setTitulo(titulo);
 
-        provas.add(p);
-
+        repository.save(p);
         System.out.println("Prova criada: " + p.getId());
     }
 
     public List<Prova> listar() {
-        return provas;
+        return repository.findAll();
+    }
+
+    public boolean existePorId(Long id) {
+        return repository.existsById(id);
     }
 }

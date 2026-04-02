@@ -1,13 +1,13 @@
 package br.com.ucsal.olimpiadas;
 
+import br.com.ucsal.olimpiadas.repository.ParticipanteRepository;
 import java.util.List;
 
 public class ParticipanteService {
+    private final ParticipanteRepository repository;
 
-    private List<Participante> participantes;
-
-    public ParticipanteService(List<Participante> participantes) {
-        this.participantes = participantes;
+    public ParticipanteService(ParticipanteRepository repository) {
+        this.repository = repository;
     }
 
     public void cadastrar(String nome, String email) {
@@ -21,12 +21,15 @@ public class ParticipanteService {
         p.setNome(nome);
         p.setEmail(email);
 
-        participantes.add(p);
-
+        repository.save(p);
         System.out.println("Participante cadastrado: " + p.getId());
     }
 
     public List<Participante> listar() {
-        return participantes;
+        return repository.findAll();
+    }
+
+    public boolean existePorId(Long id) {
+        return repository.existsById(id);
     }
 }
